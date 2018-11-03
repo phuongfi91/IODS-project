@@ -1,0 +1,12 @@
+---
+output: github_document
+---
+
+## Introduction to Open Data Science 2018
+
+This is an amazing course to learn about open data, open science and data science!
+
+Visit the course webpage here <https://mooc.helsinki.fi/course/view.php?id=158>
+
+Visit my course diary here
+<https://phuongfi91.github.io/IODS-project>
