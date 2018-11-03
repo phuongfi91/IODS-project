@@ -3,7 +3,7 @@ title: "IODS course project"
 author: "Phuong Nguyen:"
 output:
   html_document:
-    theme: cosmo
+    theme: journal
     toc: true
     toc_depth: 2
     fig_caption: true
