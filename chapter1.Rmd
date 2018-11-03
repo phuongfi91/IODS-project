@@ -1,9 +1,8 @@
 
 # About the project
 
-The course is a very good way to understand possibilities of open science, open data, and open research tools. You can also learn how to visualize and analyze data sets with some fairly advanced statistical methods.
+The course is a very good way to learn about open science, open data, and open research tools. There will be chances to utilize advanced statistical methods for visualizing and analyzing data sets.
 
-After the course, you can master a few state-of-the-art, freely available, open software tools and apply the principle of reproducible research and see its practical advantages
-learn more of all this in the near and distant future ("life-long learning")
+Free and open software tools are used throughout the course to apply principle of *reproducible research* for its practical purposes.
 
-Here is the [link](https://github.com/phuongfi91/IODS-project) to my GitHub project
+Here is the [link](https://github.com/phuongfi91/IODS-project) to my GitHub project.
