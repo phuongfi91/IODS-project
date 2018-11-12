@@ -1,7 +1,104 @@
-# Insert chapter 2 title here
+# 1. Regression and model validation
 
-*Describe the work you have done this week and summarize your learning.*
+This week we learn how to predict values of one random variable based on information from other variables, using **regression analysis**. We explore **simple linear regression**, then **multiple linear regression**. Finally, we learn how to validate the assumptions we make about the model(s) using diagnostics.
 
-- Describe your work and results clearly. 
-- Assume the reader has an introductory course level understanding of writing and reading R code as well as statistical methods
-- Assume the reader has no previous knowledge of your data or the more advanced methods you are using  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Data from international survey of Approaches to Learning
+
+The dataset is a result from the international survey of Approaches to Learning in 2013-2015. More detailed information about the original survey dataset can be found here <http://www.helsinki.fi/~kvehkala/JYTmooc/JYTOPKYS3-meta.txt>.
+
+This dataset describes the result of the survey through students basic personal properties in relation to the study approaches they took.
+
+Personal properties include:
+
+- Gender
+- Age
+- Attitude (toward statistics)
+- Points (earned from exam)
+
+Study approaches:
+
+- Deep: seeking meaning, relating ideas, use of evidence
+- Surface: lack of purpose, unrelated memorising, syllabus-boundness
+- Strategic: organized studying, time management
+
+```{r, echo=FALSE}
+learning2014 <- read.table("data/learning2014.txt", sep = "\t", header = TRUE)
+```
+
+The dataset includes 166 records with the 7 variables mentioned above:
+```{r}
+dim(learning2014)
+```
+
+A brief look into the dataset tell us the following:
+
+- *Gender* is represented by **gender**, with Female being 1, Male being 2
+- *Age* (**age**) is recorded using regular integer number
+- *Attitude* (**age**) is the sum of 10 questions related to attitude towards statistics, normalized to the scale from 1-5
+- *Points* is the **points** earned from exam
+- *Deep approach* (**deep**), *Surface approach* (**surf**), *Strategic approach* (**stra**) are the mentioned study approaches used by students in an Introductory Statistics Course. Value is the average of responses ranging from 1-5
+```{r}
+str(learning2014)
+```
+
+### Graphical overview and summaries of the data
+
+The following summaries describe the value range of each variable, as discussed in the previous section. There are twice as many female students compared to male students in the survey. The majority of students are in their 20s.
+
+```{r}
+summary(learning2014)
+```
+
+To understand the dataset better, we need to look at the overall picture and the correlation between variables in the graph below. 
+
+By interpreting from the density plots on the diagonal line, it can be seen that male students have generally more positive **attitude** toward statistics. Female students have a bit more tendency toward **surface** and **strategic** learning methods. However, overall there is very little difference when it comes to the final exam **points** between the two genders.
+
+There is, however, a strong correlation between **attitude** and the exam **points**. Exam result seems to rise along with **attitude**. There is also a slight correlation between **surface** and **strategy** study methods against exam **points**. Exam score reduces as student lean toward **surface** method, while it rises along with **strategical** approach.
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, cache=TRUE, fig.width=10, fig.height=10}
+library(GGally)
+library(ggplot2)
+ggpairs(learning2014, mapping = aes(col=gender, alpha=0.3), lower = list(combo = wrap("facethist", bins = 20)))
+```
+
+
+### Regression model
+
+To analyze further the relationship between target variable and explanatory variables, we examine a fitted model and interpret the results. We will start by choosing three explanatory variables. As discussed the the previous section, **attitude**, **surface** and **strategical** learning methods have a good correlation with the target variable points. We build a model based on those.
+
+**Attitude** has quite a small standard error compared to its estimate value. Unlike attitude, both **surf** and **stra** have rather large errors. **T-value**, which is a standard statistical test (used to reject null hypothesis), the larger the value, the more well established the relationship between variables. Similarly with p-value (**Pr(>|t|)**), it's used to test variables relationship, however, the smaller the value, the better, as it suggests that it's unlikely the relationship is due to chance. In this case, **attitude** is the only variable that seems to have said qualities (high **t-value** and low **p-value**), thus, it's the only statistically significant explanatory variable.
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+lm_model <- lm(points ~ attitude + surf + stra, data = learning2014)
+summary(lm_model)
+```
+
+By removing **surf** and **stra** variables, we now have a new model. This time, both the **intercept** and **attitude** have higher **t-value** and lower **p-value**.
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+lm_model_2 <- lm(points ~ attitude, data = learning2014)
+summary(lm_model_2)
+```
+
+### Establishing the relationship
+
+As assumed in the beginning through observation of the plots, **attitude** seems to have a relationship with **points**. The higher the **attitude**, the higher the **points**. The estimate value of 3.5255 represents the slope of change. The higher (steeper) the slope, the faster the change and the more effect on **points**.
+
+The R-squared statistic determine how well the model is fitting the actual data. The value is range between 0 and 1. The value of 0.1906 mean roughly 19% of the variance in the response data can be explained by the model (using **attitude**). Multiple regression causes R-squared value to increase as more variables are added into the model, hence the existence of **Multiple R-squared** and **Adjusted R-squared** values. The **Adjusted R-squared** value takes into account the presence of multiple variables.
+
+### Graphical model validation
+
+The variance is assumed to be constant, in which it means the size of error shoud not be dependent on the explanatory variable. If we look at the first plot down below (**Residuals vs Fitted**), it can be seen that the spread is relatively constant as the value increases, despite a small few outliers.
+
+The second assumption is the normality of the distribution. The **Normal Q-Q** plot below can be used to validate our model. As seen from the plot, the distribution seems to follow the line quite closely, despite a slight deviation at the beginning and the end, which might make the model slightly questionable.
+
+The last test check whether or not some observations have a high impact on the regression line. As seen from the **Residuals vs Leverage** plot down below, there are a lot of points scattering in the plot, pulling the line and shape it into what we see. While the pulling effect seems to be the reasonable cause for the shape of the line, it remains rather questionable whether the model can actually perform well to predict incoming values.
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, cache=TRUE, fig.width=10, fig.height=10}
+par(mfrow = c(2,2))
+plot(lm_model_2, which = c(1,2,5))
+```
