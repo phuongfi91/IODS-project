@@ -1,0 +1,74 @@
+# 2. Logistic regression
+
+One way to move on from linear regression is to consider settings where the dependent (target) variable is **discrete**. This opens a wide range of possibilities for modelling phenomena beyond the assumptions of continuity or normality.
+
+**Logistic regression** is a powerful method that is well suited for predicting and classifying data by working with **probabilities**. It belongs to a large family of statistical models called **Generalized Linear Models** (GLM). An important special case that involves a **binary** target (taking only the values 0 or 1) is the most typical and popular form of logistic regression. 
+
+We will learn the concept of **odds ratio** (OR), which helps to understand and interpret the estimated coefficients of a logistic regression model. We also take a brief look at **cross-validation**, an important principle and technique for assessing the performance of a statistical model with another data set, for example by splitting the data into a **training set** and a **testing set**.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Data set information
+
+The dataset is a result of high school student performance measured from two Portuguese schools, in relation to their alcohol consumption. More detailed information about the original dataset can be found here <https://archive.ics.uci.edu/ml/datasets/Student+Performance>.
+
+```{r, echo=FALSE}
+alc <- read.table("data/alc.csv", sep = ";", header = TRUE)
+```
+
+This dataset uses "school", "sex", "age", "address", "famsize", "Pstatus", "Medu", "Fedu", "Mjob", "Fjob", "reason", "nursery","internet" as (student) identifiers. The rest are personal attributes describing their life, performance and alcohol consumptions.
+
+The dataset includes 382 records with the 35 variables comprised of the mentioned above. **high_use** is determined based on quantified value of **alc_use**. **alc_use** is calculated based on both weekday (**Dalc**) and weekend (**Walc**) alcohol consumption:
+```{r}
+str(alc)
+```
+
+### Hypotheses
+
+Amongst the variables, student final grade (**G3**), **absences**, weekly study time (**studytime**) as well as whether or not student go out with friends (**goout**) are some of the major factors that might influence their alcohol consumption. The consumption is generally known for affecting human cognitive performance and sleep/wake cycles, therefore student **G3**, **absences** and **studytime** are possibly associated. Socializing habit such as going out with friends is culturally associated with alcohol usage, thus **goout** is another factor to be examined.
+
+### Numerical and graphical overview
+
+Here is a brief summary of the dataset:
+
+```{r, echo=FALSE}
+summary(alc)
+```
+
+Student final grade (**G3**) can range from 0 to 20, with the maximum value in the dataset being 18. **Absences** purely represent the number of absences at school (from 0 to 93). **goout** is a numerical value, which range from 1 - very low to 5 - very high. **studytime** is also numerical, with `1 - <2 hours`, `2 - 2 to 5 hours`, `3 - 5 to 10 hours`, `or 4 - >10 hours`.
+
+The following tables give initial hint that support the aforementioned hypotheses, where high alcohol consumption is linked to worse school performance and a more social life style.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library("dplyr")
+alc %>% group_by(high_use) %>% summarise(count = n(), mean_grade = mean(G3))
+alc %>% group_by(high_use) %>% summarise(count = n(), mean_absences = mean(absences))
+alc %>% group_by(high_use) %>% summarise(count = n(), mean_study_time = mean(studytime))
+alc %>% group_by(high_use) %>% summarise(count = n(), mean_go_out = mean(goout))
+```
+
+The following box plots depict the data in a more detailed manner. Even with outliers considered, the data still pretty much in line with the initial hypotheses.
+
+```{r, echo=FALSE}
+library(ggplot2)
+
+g1 <- ggplot(alc, aes(x = high_use, y = G3))
+g1 + geom_boxplot() + xlab("High alcohol use") + ylab("Final grade")
+
+g2 <- ggplot(alc, aes(x = high_use, y = absences))
+g2 + geom_boxplot() + xlab("High alcohol use") + ylab("Absences")
+
+g3 <- ggplot(alc, aes(x = high_use, y = studytime))
+g3 + geom_boxplot() + xlab("High alcohol use") + ylab("Weekly study time")
+
+g4 <- ggplot(alc, aes(x = high_use, y = goout))
+g4 + geom_boxplot() + xlab("High alcohol use") + ylab("Going out with friends")
+```
+
+### Regression model
+
+### Establishing the relationship
+
+### Graphical model validation
