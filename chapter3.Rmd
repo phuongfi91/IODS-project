@@ -6,10 +6,6 @@ One way to move on from linear regression is to consider settings where the depe
 
 We will learn the concept of **odds ratio** (OR), which helps to understand and interpret the estimated coefficients of a logistic regression model. We also take a brief look at **cross-validation**, an important principle and technique for assessing the performance of a statistical model with another data set, for example by splitting the data into a **training set** and a **testing set**.
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
 ### Data set information
 
 The dataset is a result of high school student performance measured from two Portuguese schools, in relation to their alcohol consumption. More detailed information about the original dataset can be found here <https://archive.ics.uci.edu/ml/datasets/Student+Performance>.
@@ -21,6 +17,7 @@ alc <- read.table("data/alc.csv", sep = ";", header = TRUE)
 This dataset uses "school", "sex", "age", "address", "famsize", "Pstatus", "Medu", "Fedu", "Mjob", "Fjob", "reason", "nursery","internet" as (student) identifiers. The rest are personal attributes describing their life, performance and alcohol consumptions.
 
 The dataset includes 382 records with the 35 variables comprised of the mentioned above. **high_use** is determined based on quantified value of **alc_use**. **alc_use** is calculated based on both weekday (**Dalc**) and weekend (**Walc**) alcohol consumption:
+
 ```{r}
 str(alc)
 ```
@@ -67,8 +64,74 @@ g4 <- ggplot(alc, aes(x = high_use, y = goout))
 g4 + geom_boxplot() + xlab("High alcohol use") + ylab("Going out with friends")
 ```
 
-### Regression model
+### Logistic regression model and establishing relationships
 
-### Establishing the relationship
+To make another step towards validating the hypotheses, a logistic regression model is created with **high_use** being the target variable and **G3**, **absences**, **studytime** and **goout** as explanatory variable.
 
-### Graphical model validation
+```{r, echo=FALSE}
+m <- glm(high_use ~ G3 + absences + studytime + goout, data = alc, family = "binomial")
+summary(m)
+```
+
+With the presented summary of the model above, the absolute **z value** being pretty small and **p value** being rather large for **G3** (final grade). It can be concluded that **G3** is not statistically significant enough to be used as a part of the model. Another simpler model is used instead.
+
+```{r, echo=FALSE}
+m <- glm(high_use ~ absences + studytime + goout, data = alc, family = "binomial")
+summary(m)
+```
+
+Odd ratios and confidence intervals is calculated in the table below. Odd ratios of all predictors are well within the range of corresponding confidence intervals. All interval are in general quite narrow, meaning that the model is performing rather well. This confirms previously stated hypotheses ragarding **absences**, **studytime** and **goout** variables.
+
+```{r, echo=FALSE, message=FALSE}
+# compute odds ratios (OR)
+OR <- coef(m) %>% exp
+
+# compute confidence intervals (CI)
+CI <- confint(m) %>% exp
+
+# print out the odds ratios with their confidence intervals
+cbind(OR, CI)
+```
+
+### Predictive power
+
+The model managed to predict correctly the majority of cases when the high use is false. It, however, doesn't perform as well when trying to predict cases where high use is actually true.
+
+```{r, echo=FALSE}
+# predict() the probability of high_use
+probabilities <- predict(m, type = "response")
+
+# add the predicted probabilities to 'alc'
+alc <- mutate(alc, probability = probabilities)
+
+# use the probabilities to make a prediction of high_use
+alc <- mutate(alc, prediction = probability > 0.5)
+
+# tabulate the target variable versus the predictions
+table(high_use = alc$high_use, prediction = alc$prediction)
+```
+
+The following graph visualizes the actual values and the predictions.
+
+```{r, echo=FALSE}
+library(dplyr); library(ggplot2)
+
+g <- ggplot(alc, aes(x = probability, y = high_use, col = prediction))
+
+# define the geom as points and draw the plot
+g + geom_point()
+
+```
+
+The proportion of inaccurately classified individuals is calculated using the loss function defined below:
+
+```{r}
+# loss function definition
+loss_func <- function(class, prob) {
+  n_wrong <- abs(class - prob) > 0.5
+  mean(n_wrong)
+}
+
+# compute the proportion of wrong predictions in the (training) data
+loss_func(class = alc$high_use, prob = alc$probability)
+```
