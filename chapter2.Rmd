@@ -3,7 +3,7 @@
 This week we learn how to predict values of one random variable based on information from other variables, using **regression analysis**. We explore **simple linear regression**, then **multiple linear regression**. Finally, we learn how to validate the assumptions we make about the model(s) using diagnostics.
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, fig.width=10, fig.height=10)
 ```
 
 ### Data from international survey of Approaches to Learning
@@ -59,7 +59,7 @@ By interpreting from the density plots on the diagonal line, it can be seen that
 
 There is, however, a strong correlation between **attitude** and the exam **points**. Exam result seems to rise along with **attitude**. There is also a slight correlation between **surface** and **strategy** study methods against exam **points**. Exam score reduces as student lean toward **surface** method, while it rises along with **strategical** approach.
 
-```{r, echo=FALSE, warning=FALSE, message=FALSE, cache=TRUE, fig.width=10, fig.height=10}
+```{r, echo=FALSE, warning=FALSE, message=FALSE, cache=TRUE}
 library(GGally)
 library(ggplot2)
 ggpairs(learning2014, mapping = aes(col=gender, alpha=0.3), lower = list(combo = wrap("facethist", bins = 20)))
