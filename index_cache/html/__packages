@@ -1,3 +1,14 @@
 base
 ggplot2
 GGally
+dplyr
+bindrcpp
+MASS
+corrplot
+tidyverse
+tibble
+tidyr
+readr
+purrr
+stringr
+forcats

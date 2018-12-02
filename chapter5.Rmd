@@ -1,3 +1,139 @@
 # 4. Dimensionality reduction techniques
 
-###
+A fairly large selection of statistical methods can be listed under the title *"dimensionality reduction techniques"*. Most often (nearly always, that is!) the real-world phenomena are **multidimensional**: they may consist of not just two or three but 5 or 10 or 20 or 50 (or more) dimensions. Of course, we are living only in a three-dimensional (3D) world, so those multiple dimensions may really challenge our imagination. It would be easier **to reduce the number of dimensions** in one way or another.
+
+In this chapter, we learn the basics of two data science based ways of reducing the dimensions. The key method is **principal component analysis** (PCA), which reduces any number of measured (continuous) and correlated variables into a few uncorrelated components that collect together as much variance as possible from the original variables. The most important components can be then used for various purposes, e.g., drawing scatterplots and other fancy graphs that would be quite impossible to achieve with the original variables and too many dimensions.
+
+**Multiple correspondence analysis** (MCA) and other variations of CA bring us similar possibilities in the **world of discrete variables**, even nominal scale (classified) variables, by finding a suitable transformation into continuous scales and then reducing the dimensions quite analogously with the PCA. The typical graphs show the original classes of the discrete variables on the same "map", making it possible to reveal **connections** (correspondences) between different things that would be quite impossible to see from the corresponding cross tables (too many numbers!).
+
+Briefly stated, these methods help to visualize and understand multidimensional phenomena by reducing their dimensionality that may first feel impossible to handle at all.
+
+### Data Overview
+
+The data was originally taken from <http://hdr.undp.org/en/content/human-development-index-hdi> and contains information regarding human development indices on various areas in different countries and regions around the world.
+
+The data being analyzed is a combination of several indicators from most countries in the world, with 155 records and 8 variables. Two major group of indicators are:
+
+##### Health and knowledge
+
+- "GNI" = Gross National Income per capita
+- "Life.Exp" = Life expectancy at birth
+- "Edu.Exp" = Expected years of schooling 
+- "Mat.Mor" = Maternal mortality ratio
+- "Ado.Birth" = Adolescent birth rate
+
+##### Empowerment
+
+- "Parli.F" = Percetange of female representatives in parliament
+- "Edu2.FM" = Edu2.F / Edu2.M
+- "Labo.FM" = Labo2.F / Labo2.M
+
+- "Edu2.F" = Proportion of females with at least secondary education
+- "Edu2.M" = Proportion of males with at least secondary education
+- "Labo.F" = Proportion of females in the labour force
+- "Labo.M" " Proportion of males in the labour force
+
+```{r, echo=FALSE}
+human <- read.table("human.csv", sep = ";")
+str(human)
+```
+
+```{r, echo=FALSE}
+summary(human)
+```
+
+The following plot describe the relationship between variables in the dataset. When it comes to basic education, most countries seem to have a balance ratio between male and female. However, when it comes to labour work force, there is a shift toward a male workforce rather than female. There is still a gap in education periods and life expectancies among contries as there is a big variation in data. The difference between GNI are narrowing down, however, there is still some countries doing way better than others. Maternal mortality is generally low but there are still many cases where the number is quite high. Adolescent birth rate is still quite high overall. Women are taking a bigger role in political landscape, however the majority remain male dominated.
+
+There is a strong correlation across the board between education **Edu.Exp** and life expectancy **Life.Exp**, **GNI**, maternal mortality **Mat.Mor** and adolescent birth rate **Ado.Birth**. Life expectancy **Life.Exp** is naturally linked to **Mat.Mor** and **Ado.Birth** (negative correlation).
+
+```{r, echo=FALSE, cache=TRUE, message=FALSE, fig.width=10}
+library(GGally)
+ggpairs(human)
+```
+
+### Principal component analysis
+
+A principal component analysis (PCA) is first performed on the non-standardized data. The following biplot showcases the observations by the first two principal components (PC1, PC2). The arrow and its length represent the correlation between the feature and the corresponding principal component.
+
+```{r, echo=FALSE, fig.width=10, warning=FALSE}
+# perform principal component analysis (with the SVD method)
+pca_human <- prcomp(human)
+
+# draw a biplot of the principal component representation and the original variables
+biplot(pca_human, choices = 1:2, cex = c(0.8, 1), col = c("grey40", "deeppink2"))
+```
+
+GNI is the only feature to be easily recognized in the plot as having a correlation to PC1. However, this is due to its large value range compared to other variables within the dataset. This makes it quite difficult to interpret the plot and determine which variables are actually having more effect on principal components.
+
+The dataset is then standardized and PCA is performed again. The following is a summary of the normalized dataset, which show all scaled variables and their normalized range, thus more usable for the PCA.
+
+```{r, echo=FALSE}
+# standardize the variables
+human_std <- scale(human)
+
+# print out a summary of the scaled dataset
+summary(human_std)
+```
+
+The biplot is drawn again but this time using the scaled dataset. As shown in the plot, features can be seen together as a groups, which have similar angles to their corresponding principal component. Education **Edu.Exp**, **Edu2.FM** is negatively correlated to adolescent birth **Ado.Birth**, while life expectancy **Life.Exp** is negatively correlated to maternal mortality **Mat.Mor**. Gross national income **GNI** directly goes together with education and life expectancy, while against mortality and teenage birth, as expected. Female anticipation in parliment **Parli.F** can be somewhat related to ratio of female and male in the workforce **Labo.FM**.
+
+```{r, echo=FALSE, fig.width=10}
+# perform principal component analysis (with the SVD method)
+pca_human <- prcomp(human_std)
+
+# draw a biplot of the principal component representation and the original variables
+par(oma = c(0,0,3,0))
+invisible(biplot(pca_human, choices = 1:2, cex = c(0.8, 1), col = c("grey40", "deeppink2")) + title(main = "Education, gender equality and theirs relation to\nadolescent birth, mortality and parlimentary involvement",outer = TRUE))
+```
+
+Since **Parli.F** and **Labo.FM** are more aligned to **PC2**, while **Edu.Exp**, **Edu2.FM**, **Life.Exp**,**GNI**, **Mat.Mor** and **Ado.Birth** are more in line with **PC1**, it can be said that the principal components have their implicit meanings.
+
+For **PC1**, it's understandable to see education, income and life expectancy going hand in hand with each other, as they complement each other in real life. Poor education often lead to lack to youth knowledge and therefore high adolescent birth rate, as well as maternal mortality. This mortality also directly affects life expectancy. Income, however, is more implicit, thus indirectly affects other factors, but still theirs relation are easily understandable. This principal component **PC1** therefore reflects **Health and knowledge** and its effects.
+
+In case of **PC2**, it's more about **Gender empowerment**. As female become more active in the labor workforce, they also end up being more active in political movement, which is a common side effect in countries where gender equality is well respected.
+
+### The tea dataset
+
+The **tea** dataset from **FactoMineR** library contains a very comprehensive research on how tea are consumed, including where, how, in which environment, etc. **age** is the only variable with integer values, while the rest contain categorical values, which are self-explanatory.
+
+```{r, echo=FALSE}
+library(FactoMineR)
+data(tea)
+
+str(tea)
+```
+
+To visualize the dataset, a simplified dataset is used where "Tea", "How", "how", "sugar", "where", "lunch" variables are kept, as these will be the focus of the upcoming analysis.
+
+```{r,echo=FALSE, warning=FALSE}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+# column names to keep in the dataset
+keep_columns <- c("Tea", "How", "how", "sugar", "where", "lunch")
+
+# select the 'keep_columns' to create a new dataset
+tea_time <- dplyr::select(tea, one_of(keep_columns))
+
+# visualize the dataset
+gather(tea_time) %>% ggplot(aes(value)) + facet_wrap("key", scales = "free") + geom_bar() + theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8))
+```
+
+The table below is a summary of the MCA model, performed on the simplified tea dataset. As can be seen from the categorical variables sub-table, the way tea is packaged **how** and **where** it is used are closely related to **Dim.1**, as well as **Dim.2**. Meanwhile, the kind of **Tea** and **How** they are drunk are related to **Dim.3**.
+
+```{r, echo=FALSE}
+# multiple correspondence analysis
+mca <- MCA(tea_time, graph = FALSE)
+
+# summary of the model
+summary(mca)
+```
+
+The factor map below show the correlation between variables in **Dim.1** and **Dim.2**. It can be clearly seen that tea bag consumption are closely related to chain store, where the tea is bought, while unpackaged tea are usually served at tea shop. Earl Grey tea are generally served with milk, while black tea can be served with either milk, lemon or alone.
+
+```{r, echo=FALSE}
+# visualize MCA
+plot(mca, invisible=c("ind"), habillage="quali")
+```
+
