@@ -34,7 +34,7 @@ The data being analyzed is a combination of several indicators from most countri
 - "Labo.M" " Proportion of males in the labour force
 
 ```{r, echo=FALSE}
-human <- read.table("human.csv", sep = ";")
+human <- read.table("data/human.csv", sep = ";")
 str(human)
 ```
 
